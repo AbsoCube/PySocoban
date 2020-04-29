@@ -1,2 +1,2 @@
 # PySocoban
-Socoban game in pygame.
+Sokaban game in pygame.
