@@ -9,7 +9,7 @@ pygame.init()
 # 游戏初始化
 screen = pygame.display.set_mode((800, 800))
 pygame.display.set_caption("PySocoban")
-pygame.display.set_icon(pygame.image.load("images/icon.ico"))
+pygame.display.set_icon(pygame.image.load("images/PyCase.ico"))
 # 加载资源
 Steve = LoadImage("images/Steve.png")
 plank = LoadImage("images/plank.png")
@@ -96,12 +96,16 @@ while True:
         bg.show_image((0, 0), screen)
         if keys[K_DOWN] and time.time() - up_point >= 0.5:
             s_posy += 50
+            up_point = time.time()
         if keys[K_UP] and time.time() - up_point >= 0.5:
             s_posy -= 50
+            up_point = time.time()
         if keys[K_LEFT] and time.time() - down_point >= 0.5:
             s_posx -= 50
+            down_point = time.time()
         if keys[K_RIGHT] and time.time() - down_point >= 0.5:
             s_posx += 50
+            down_point = time.time()
         for index1 in range(0, 16):
             for index2 in range(0, 16):
                 if gmap[index1][index2] == 1:
@@ -109,7 +113,7 @@ while True:
                 elif gmap[index1][index2] == 2:
                     case.show_image((index1 * 50, index2 * 50), screen)
                 elif gmap[index1][index2] == 3:
-                    Steve.show_transform_image((index1 * s_posx, index2 * s_posy), 50, 50, screen)
+                    Steve.show_transform_image((index1 * 50 + s_posx, index2 * 50 + s_posy), 50, 50, screen)
                 elif gmap[index1][index2] == 4:
                     sign.show_transform_image((index1 * 50, index2 * 50), 50, 50, screen)
         back.show_transform_image((10, 15), 30, 20, screen)
