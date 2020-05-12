@@ -32,7 +32,7 @@ up_point = time.time()
 down_point = time.time()
 # 按钮
 pfont = pygame.font.Font("font/Mouse.ttf", 30)
-play = button(350, 450, 100, 50, "Play", pfont, (71, 1, 3), textcolor=(255, 255, 255))
+play = button(350, 425, 150, 50, "Play", pfont, (71, 1, 3), (255, 255, 255))
 # flags
 starts = False
 chooses = True
@@ -99,9 +99,7 @@ while True:
                     mode = "hard"
                 if 535 <= mx <= 723 and 375 <= my <= 425:
                     mode = "random"
-                if 10 <= mx <= 40 and 15 <= my <= 35:
-                    if starts:
-                        starts = False
+                play.text = mode
         if play.pressed(event) and mode:
             starts = True
             gmap = maps[mode]
