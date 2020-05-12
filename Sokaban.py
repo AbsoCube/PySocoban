@@ -18,6 +18,7 @@ TPH = LoadImage("images/TPH.png")
 bg = LoadImage("images/grassfarm.jpg")
 sign = LoadImage("images/sign.png")
 back = LoadImage("images/back.png")
+finish = LoadImage("images/finish.png")
 # 字体
 mcfont = pygame.font.Font("font/Mouse.ttf", 50)
 text1 = Write("Easy\tNormal\tHard\tRandom", (0, 0, 0), screen)
@@ -36,11 +37,10 @@ play = button(350, 450, 100, 50, "Play", pfont, (71, 1, 3), textcolor=(255, 255,
 starts = False
 chooses = True
 mode = ""
-# Steve坐标
-s_posx = 50
-s_posy = 50
-# MaxScore
-file = open("MaxScore.s", "w")
+# 坐标偏移
+rel_x = 0
+rel_y = 0
+move = "no"
 # show logo
 screen.fill((255, 255, 255))
 TPH.show_transform_image((250, 275), 300, 250, screen)
@@ -52,6 +52,30 @@ pygame.mixer.music.stop()
 pygame.mixer.music.load("music/C418 - Minecraft.mp3")
 pygame.mixer.music.play()
 
+
+def replace(pos1, respos):
+    global gmap
+    target = (pos1[0] + respos[0], pos1[1] + respos[1])
+    if gmap[target[0]][target[1]] != 0 and gmap[target[0]][target[1]] != 2:
+        return False
+    elif gmap[target[0]][target[1]] == 0:
+        gmap[target[0]][target[1]] = gmap[pos1[0]][pos1[1]]
+        gmap[pos1[0]][pos1[1]] = 0
+        return True
+    elif gmap[target[0]][target[1]] == 2:
+        if gmap[target[0] + respos[0]][target[1] + respos[1]] == 0 or \
+                gmap[target[0] + respos[0]][target[1] + respos[1]] == 4:
+            if gmap[target[0] + respos[0]][target[1] + respos[1]] == 4:
+                gmap[target[0] + respos[0]][target[1] + respos[1]] = 5
+            else:
+                gmap[target[0] + respos[0]][target[1] + respos[1]] = gmap[target[0]][target[1]]
+            gmap[target[0]][target[1]] = gmap[pos1[0]][pos1[1]]
+            gmap[pos1[0]][pos1[1]] = 0
+            return True
+        else:
+            return False
+
+
 # 游戏主循环
 while True:
     # 音乐循环播放
@@ -62,7 +86,6 @@ while True:
         bgm_time = time.time()
     # 按键检测
     mx, my = pygame.mouse.get_pos()
-    keys = pygame.key.get_pressed()
     for event in pygame.event.get():
         if event.type == QUIT:
             sys.exit()
@@ -83,6 +106,23 @@ while True:
             starts = True
             gmap = maps[mode]
 
+            # Steve坐标
+            for index1 in range(0, 16):
+                for index2 in range(0, 16):
+                    if gmap[index1][index2] == 3:
+                        StevePos = (index1, index2)
+
+    keys = pygame.key.get_pressed()
+    if starts and move == "no":
+        if keys[K_DOWN]:
+            move = "down"
+        elif keys[K_UP]:
+            move = "up"
+        elif keys[K_LEFT]:
+            move = "left"
+        elif keys[K_RIGHT]:
+            move = "right"
+
     # 游戏封面
     if not starts:
         bg.show_image((0, 0), screen)
@@ -94,18 +134,25 @@ while True:
     # 游戏
     elif starts:
         bg.show_image((0, 0), screen)
-        if keys[K_DOWN] and time.time() - up_point >= 0.5:
-            s_posy += 50
-            up_point = time.time()
-        if keys[K_UP] and time.time() - up_point >= 0.5:
-            s_posy -= 50
-            up_point = time.time()
-        if keys[K_LEFT] and time.time() - down_point >= 0.5:
-            s_posx -= 50
-            down_point = time.time()
-        if keys[K_RIGHT] and time.time() - down_point >= 0.5:
-            s_posx += 50
-            down_point = time.time()
+
+        # 移动
+        if move == "up":
+            rel_y -= 0.2
+        elif move == "down":
+            rel_y += 0.2
+        elif move == "left":
+            rel_x -= 0.2
+        elif move == "right":
+            rel_x += 0.2
+
+        # 检查移动是否结束
+        if abs(rel_x) >= 1 or abs(rel_y) >= 1:
+            move = "no"
+            if replace((StevePos[0], StevePos[1]), (int(rel_x), int(rel_y))):
+                StevePos = (int(StevePos[0] + rel_x), int(StevePos[1] + rel_y))
+            rel_x = 0
+            rel_y = 0
+
         for index1 in range(0, 16):
             for index2 in range(0, 16):
                 if gmap[index1][index2] == 1:
@@ -113,9 +160,11 @@ while True:
                 elif gmap[index1][index2] == 2:
                     case.show_image((index1 * 50, index2 * 50), screen)
                 elif gmap[index1][index2] == 3:
-                    Steve.show_transform_image((index1 * 50 + s_posx, index2 * 50 + s_posy), 50, 50, screen)
+                    Steve.show_transform_image(((index1 + rel_x) * 50, (index2 + rel_y) * 50), 50, 50, screen)
                 elif gmap[index1][index2] == 4:
                     sign.show_transform_image((index1 * 50, index2 * 50), 50, 50, screen)
+                elif gmap[index1][index2] == 5:
+                    finish.show_transform_image((index1 * 50, index2 * 50), 50, 50, screen)
         back.show_transform_image((10, 15), 30, 20, screen)
         screen.blit(back_text, (50, 5))
 
