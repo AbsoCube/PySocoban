@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-import pygame, sys, time, random
+import pygame, sys, time, copy
 from ClassButton import button
 from Write import Write
 from ShowImage import LoadImage
@@ -109,7 +109,7 @@ while True:
         if play.pressed(event) and mode:
             finishCases = 0
             starts = True
-            gmap = maps[mode]
+            gmap = copy.deepcopy(maps[mode])
             # Steve坐标
             for index1 in range(0, 16):
                 for index2 in range(0, 16):
