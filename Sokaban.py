@@ -20,23 +20,28 @@ sign = LoadImage("images/sign.png")
 back = LoadImage("images/back.png")
 finish = LoadImage("images/finish.png")
 # 字体
+sRect = screen.get_rect()
 mcfont = pygame.font.Font("font/Mouse.ttf", 50)
 text1 = Write("Easy\tNormal\tHard\tRandom", (0, 0, 0), screen)
 choose_text = mcfont.render("Choose difficulty:", True, (0, 0, 0))
 back_text = mcfont.render("back", True, (0, 0, 0))
+cText = mcfont.render("CLEARED!", True, (0, 0, 0))
+cRect = cText.get_rect()
+cRect.centerx = sRect.centerx
+cRect.centery = 300
 ctrect = choose_text.get_rect()
-ctrect.centerx = 400
+ctrect.centerx = sRect.centerx
 ctrect.centery = 325
-# point
-up_point = time.time()
-down_point = time.time()
 # 按钮
 pfont = pygame.font.Font("font/Mouse.ttf", 30)
-play = button(350, 425, 150, 50, "Play", pfont, (71, 1, 3), (255, 255, 255))
+play = button(325, 425, 150, 50, "Play", pfont, (71, 1, 3), (255, 255, 255))
+backButton = button(325, 425, 150, 50, "Back", pfont, (71, 1, 3), (255, 255, 255))
 # flags
 starts = False
-chooses = True
+cleared = False
 mode = ""
+finishCases = 0
+oriMap = maps
 # 坐标偏移
 rel_x = 0
 rel_y = 0
@@ -54,7 +59,7 @@ pygame.mixer.music.play()
 
 
 def replace(pos1, respos):
-    global gmap
+    global gmap, finishCases
     target = (pos1[0] + respos[0], pos1[1] + respos[1])
     if gmap[target[0]][target[1]] != 0 and gmap[target[0]][target[1]] != 2:
         return False
@@ -67,6 +72,7 @@ def replace(pos1, respos):
                 gmap[target[0] + respos[0]][target[1] + respos[1]] == 4:
             if gmap[target[0] + respos[0]][target[1] + respos[1]] == 4:
                 gmap[target[0] + respos[0]][target[1] + respos[1]] = 5
+                finishCases += 1
             else:
                 gmap[target[0] + respos[0]][target[1] + respos[1]] = gmap[target[0]][target[1]]
             gmap[target[0]][target[1]] = gmap[pos1[0]][pos1[1]]
@@ -90,7 +96,7 @@ while True:
         if event.type == QUIT:
             sys.exit()
         if event.type == MOUSEBUTTONDOWN:
-            if event.button == 1 and not starts and chooses:
+            if event.button == 1 and not starts and not cleared:
                 if 73 <= mx <= 186 and 375 <= my <= 425:
                     mode = "easy"
                 if 210 <= mx <= 375 <= my <= 425:
@@ -101,14 +107,17 @@ while True:
                     mode = "random"
                 play.text = mode
         if play.pressed(event) and mode:
+            finishCases = 0
             starts = True
             gmap = maps[mode]
-
             # Steve坐标
             for index1 in range(0, 16):
                 for index2 in range(0, 16):
                     if gmap[index1][index2] == 3:
                         StevePos = (index1, index2)
+        # 开发者工具
+        if backButton.pressed(event) and cleared:
+            cleared = False
 
     keys = pygame.key.get_pressed()
     if starts and move == "no":
@@ -120,14 +129,18 @@ while True:
             move = "left"
         elif keys[K_RIGHT]:
             move = "right"
+    if keys[K_f] and starts:
+        cleared = True
+        starts = False
+        mode = ""
+        play.text = "Play"
 
     # 游戏封面
-    if not starts:
+    if not starts and not cleared:
         bg.show_image((0, 0), screen)
         play.show(screen)
-        if chooses:
-            text1.show_center()
-            screen.blit(choose_text, ctrect)
+        text1.show_center()
+        screen.blit(choose_text, ctrect)
 
     # 游戏
     elif starts:
@@ -151,6 +164,7 @@ while True:
             rel_x = 0
             rel_y = 0
 
+        # 绘制游戏场景
         for index1 in range(0, 16):
             for index2 in range(0, 16):
                 if gmap[index1][index2] == 1:
@@ -165,5 +179,17 @@ while True:
                     finish.show_transform_image((index1 * 50, index2 * 50), 50, 50, screen)
         back.show_transform_image((10, 15), 30, 20, screen)
         screen.blit(back_text, (50, 5))
+
+        # 检查是否通关
+        if finishCases == cases[mode]:
+            cleared = True
+            starts = False
+            mode = ""
+            play.text = "Play"
+
+    # 关卡完成
+    elif cleared:
+        screen.blit(cText, cRect)
+        backButton.show(screen)
 
     pygame.display.update()
